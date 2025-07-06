@@ -5,41 +5,84 @@
 //  Created by Grishka on 25.03.2023.
 //
 
-import Foundation
+import CoreGraphics
 
-public struct MediaLayoutResult {
-    let width: Int
-    let height: Int
-    let columnSizes: [Int]
-    let rowSizes: [Int]
-    let tiles: [Tile]
+public struct MediaLayoutResult: Hashable {
+    public var width: Int
+    public var height: Int
+    public var columnSizes: [Int]
+    public var rowSizes: [Int]
+    public var tiles: [Tile]
 
-    public struct Tile {
-        var colSpan: Int
-        let rowSpan: Int
-        var startCol: Int
-        let startRow: Int
-        var width: Int = 0
+    public init(
+        width: Int,
+        height: Int,
+        columnSizes: [Int],
+        rowSizes: [Int],
+        tiles: [Tile],
+    ) {
+        self.width = width
+        self.height = height
+        self.columnSizes = columnSizes
+        self.rowSizes = rowSizes
+        self.tiles = tiles
+    }
+
+    public struct Tile: Hashable {
+        public var colSpan: Int
+        public var rowSpan: Int
+        public var startCol: Int
+        public var startRow: Int
+        public var width: Int
+
+        public init(
+            colSpan: Int,
+            rowSpan: Int,
+            startCol: Int,
+            startRow: Int,
+            width: Int = 0,
+        ) {
+            self.colSpan = colSpan
+            self.rowSpan = rowSpan
+            self.startCol = startCol
+            self.startRow = startRow
+            self.width = width
+        }
     }
 }
 
-class MediaLayoutHelper {
-    static let maxWidth: CGFloat = 1000
-    static let maxHeight: CGFloat = 1777
-    static let minHeight: CGFloat = 563
-    static let gap: CGFloat = 1.5
-    static let maxRatio = maxWidth / maxHeight
+public struct MediaLayout {
+    public var maxWidth: CGFloat
+    public var maxHeight: CGFloat
+    public var minHeight: CGFloat
+    public var gap: CGFloat
+    public var maxRatio: CGFloat
 
-    public static func generateMediaLayout(attachments: [MastodonAttachment]) -> MediaLayoutResult? {
-        if attachments.count < 2 {
+    public init(
+        maxWidth: CGFloat,
+        maxHeight: CGFloat,
+        minHeight: CGFloat,
+        gap: CGFloat,
+    ) {
+        self.maxWidth = maxWidth
+        self.maxHeight = maxHeight
+        self.minHeight = minHeight
+        self.gap = gap
+        self.maxRatio = maxWidth / maxHeight
+    }
+
+    public func generate<Sizes : Collection>(
+        mediaSizes: Sizes
+    ) -> MediaLayoutResult? where Sizes.Element == CGSize {
+        if mediaSizes.count < 2 {
             return nil
         }
 
         var ratios: [CGFloat] = []
         var allAreWide = true
         var allAreSquare = true
-        for att in attachments {
-            let ratio: CGFloat = max(0.45, CGFloat(att.size.width / att.size.height))
+        for size in mediaSizes {
+            let ratio: CGFloat = max(0.45, CGFloat(size.width / size.height))
             if ratio <= 1.2 {
                 allAreWide = false
                 if ratio < 0.8 {
@@ -53,7 +96,7 @@ class MediaLayoutHelper {
 
         let avgRatio: CGFloat = ratios.reduce(0.0, +) / CGFloat(ratios.count)
 
-        switch attachments.count {
+        switch mediaSizes.count {
         case 2:
             if allAreWide && avgRatio > 1.4 * maxRatio && abs(ratios[1] - ratios[0]) < 0.2 {
                 // Two wide attachments, one above the other
@@ -206,7 +249,7 @@ class MediaLayoutHelper {
                     ])
             }
         default:
-            let cnt = attachments.count
+            let cnt = mediaSizes.count
             var ratiosCropped: [CGFloat] = []
             if avgRatio > 1.1 {
                 for ratio in ratios {
@@ -221,13 +264,13 @@ class MediaLayoutHelper {
             var tries: [[Int]: [CGFloat]] = [:]
 
             // One line
-            tries[[attachments.count]] = [calculateMultiThumbsHeight(ratios: ratiosCropped, width: maxWidth, margin: gap)]
+            tries[[mediaSizes.count]] = [calculateMultiThumbsHeight(ratios: ratiosCropped, width: maxWidth, margin: gap)]
 
             // Two lines
             for firstLine in 1...cnt - 1 {
                 tries[[firstLine, cnt - firstLine]] = [
-                    calculateMultiThumbsHeight(ratios: Array(ratiosCropped[..<firstLine]), width: maxWidth, margin: gap),
-                    calculateMultiThumbsHeight(ratios: Array(ratiosCropped[firstLine...]), width: maxWidth, margin: gap)
+                    calculateMultiThumbsHeight(ratios: ratiosCropped[..<firstLine], width: maxWidth, margin: gap),
+                    calculateMultiThumbsHeight(ratios: ratiosCropped[firstLine...], width: maxWidth, margin: gap)
                 ]
             }
 
@@ -235,9 +278,9 @@ class MediaLayoutHelper {
             for firstLine in 1...cnt - 2 {
                 for secondLine in 1...cnt - firstLine-1 {
                     tries[[firstLine, secondLine, cnt - firstLine - secondLine]] = [
-                        calculateMultiThumbsHeight(ratios: Array(ratiosCropped[..<firstLine]), width: maxWidth, margin: gap),
-                        calculateMultiThumbsHeight(ratios: Array(ratiosCropped[firstLine..<firstLine + secondLine]), width: maxWidth, margin: gap),
-                        calculateMultiThumbsHeight(ratios: Array(ratiosCropped[(firstLine + secondLine)...]), width: maxWidth, margin: gap)
+                        calculateMultiThumbsHeight(ratios: ratiosCropped[..<firstLine], width: maxWidth, margin: gap),
+                        calculateMultiThumbsHeight(ratios: ratiosCropped[firstLine..<firstLine + secondLine], width: maxWidth, margin: gap),
+                        calculateMultiThumbsHeight(ratios: ratiosCropped[(firstLine + secondLine)...], width: maxWidth, margin: gap)
                     ]
                 }
             }
@@ -259,7 +302,7 @@ class MediaLayoutHelper {
                 }
             }
 
-            var thumbsRemain: [MastodonAttachment] = Array(attachments)
+            var thumbsRemain: [CGSize] = Array(mediaSizes)
             var ratiosRemain: [CGFloat] = Array(ratiosCropped)
             let optHeights = tries[optConf]!
             var totalHeight: CGFloat = 0.0
@@ -268,7 +311,7 @@ class MediaLayoutHelper {
             var rowTiles: [[MediaLayoutResult.Tile]] = []
 
             for (i, lineChunksNum) in optConf.enumerated() {
-                var lineThumbs: [MastodonAttachment] = []
+                var lineThumbs: [CGSize] = []
                 for _ in 0..<lineChunksNum {
                     lineThumbs.append(thumbsRemain.removeFirst())
                 }
@@ -325,7 +368,11 @@ class MediaLayoutHelper {
         }
     }
 
-    private static func calculateMultiThumbsHeight(ratios: [CGFloat], width: CGFloat, margin: CGFloat) -> CGFloat {
+    private func calculateMultiThumbsHeight<Ratios: Collection>(
+        ratios: Ratios,
+        width: CGFloat,
+        margin: CGFloat,
+    ) -> CGFloat where Ratios.Element == CGFloat {
         return (width - (CGFloat(ratios.count) - 1.0) * margin) / ratios.reduce(0.0, +)
     }
 }
