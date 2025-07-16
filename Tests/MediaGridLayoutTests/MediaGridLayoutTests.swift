@@ -1,17 +1,21 @@
 import Testing
 import MediaGridLayout
-import CoreGraphics
 
 private let layout = MediaLayout(maxWidth: 1000, maxHeight: 1777, minHeight: 563, gap: 1.5)
 
+private struct CGSize: Sized, Equatable {
+    var width: Double
+    var height: Double
+}
+
 @Test func returnsNilWhenZeroOrOneMedia() {
-    #expect(layout.generate(mediaSizes: []) == nil)
-    #expect(layout.generate(mediaSizes: [CGSize(width: 100, height: 100)]) == nil)
+    #expect(layout.generate([CGSize]()) == nil)
+    #expect(layout.generate([CGSize(width: 100, height: 100)]) == nil)
 }
 
 @Test func squareSizesOnly() {
     #expect(
-        layout.generate(mediaSizes: [
+        layout.generate([
             CGSize(width: 100, height: 100),
             CGSize(width: 200, height: 200),
             CGSize(width: 300, height: 300),
@@ -21,9 +25,9 @@ private let layout = MediaLayout(maxWidth: 1000, maxHeight: 1777, minHeight: 563
             columnSizes: [499, 501],
             rowSizes: [1000, 499],
             tiles: [
-                .init(colSpan: 2, rowSpan: 1, startCol: 0, startRow: 0),
-                .init(colSpan: 1, rowSpan: 1, startCol: 0, startRow: 1),
-                .init(colSpan: 1, rowSpan: 1, startCol: 1, startRow: 1),
+                .init(element: CGSize(width: 100, height: 100), colSpan: 2, rowSpan: 1, startCol: 0, startRow: 0),
+                .init(element: CGSize(width: 200, height: 200), colSpan: 1, rowSpan: 1, startCol: 0, startRow: 1),
+                .init(element: CGSize(width: 300, height: 300), colSpan: 1, rowSpan: 1, startCol: 1, startRow: 1),
             ],
         )
     )
@@ -31,7 +35,7 @@ private let layout = MediaLayout(maxWidth: 1000, maxHeight: 1777, minHeight: 563
 
 @Test func nineItems() {
     #expect(
-        layout.generate(mediaSizes: [
+        layout.generate([
             CGSize(width: 100, height: 200),
             CGSize(width: 200, height: 100),
             CGSize(width: 300, height: 300),
@@ -47,15 +51,15 @@ private let layout = MediaLayout(maxWidth: 1000, maxHeight: 1777, minHeight: 563
             columnSizes: [87, 174, 49, 125, 130, 78, 174, 183],
             rowSizes: [174, 689],
             tiles: [
-                .init(colSpan: 1, rowSpan: 1, startCol: 0, startRow: 0, width: 87),
-                .init(colSpan: 1, rowSpan: 1, startCol: 1, startRow: 0, width: 174),
-                .init(colSpan: 2, rowSpan: 1, startCol: 2, startRow: 0, width: 174),
-                .init(colSpan: 1, rowSpan: 1, startCol: 4, startRow: 0, width: 130),
-                .init(colSpan: 1, rowSpan: 1, startCol: 5, startRow: 0, width: 78),
-                .init(colSpan: 1, rowSpan: 1, startCol: 6, startRow: 0, width: 174),
-                .init(colSpan: 1, rowSpan: 1, startCol: 7, startRow: 0, width: 183),
-                .init(colSpan: 3, rowSpan: 1, startCol: 0, startRow: 1, width: 310),
-                .init(colSpan: 5, rowSpan: 1, startCol: 3, startRow: 1, width: 690)
+                .init(element: CGSize(width: 100, height: 200), colSpan: 1, rowSpan: 1, startCol: 0, startRow: 0, width: 87),
+                .init(element: CGSize(width: 200, height: 100), colSpan: 1, rowSpan: 1, startCol: 1, startRow: 0, width: 174),
+                .init(element: CGSize(width: 300, height: 300), colSpan: 2, rowSpan: 1, startCol: 2, startRow: 0, width: 174),
+                .init(element: CGSize(width: 150, height: 200), colSpan: 1, rowSpan: 1, startCol: 4, startRow: 0, width: 130),
+                .init(element: CGSize(width: 10, height: 100), colSpan: 1, rowSpan: 1, startCol: 5, startRow: 0, width: 78),
+                .init(element: CGSize(width: 10, height: 10), colSpan: 1, rowSpan: 1, startCol: 6, startRow: 0, width: 174),
+                .init(element: CGSize(width: 250, height: 200), colSpan: 1, rowSpan: 1, startCol: 7, startRow: 0, width: 183),
+                .init(element: CGSize(width: 33, height: 100), colSpan: 3, rowSpan: 1, startCol: 0, startRow: 1, width: 310),
+                .init(element: CGSize(width: 160, height: 90), colSpan: 5, rowSpan: 1, startCol: 3, startRow: 1, width: 690)
             ],
         )
     )
