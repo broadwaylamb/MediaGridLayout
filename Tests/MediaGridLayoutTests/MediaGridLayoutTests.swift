@@ -1,7 +1,7 @@
 import Testing
 import MediaGridLayout
 
-private let layout = MediaLayout(maxWidth: 1000, maxHeight: 1777, minHeight: 563, gap: 1.5)
+private let layout = MediaLayout()
 
 private struct CGSize: Sized, Equatable {
     var width: Double

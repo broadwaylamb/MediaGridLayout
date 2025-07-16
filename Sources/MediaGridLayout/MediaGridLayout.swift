@@ -69,6 +69,15 @@ public struct MediaLayout {
     public var gap: Double
     public var maxRatio: Double
 
+    public init() {
+        self.init(
+            maxWidth: 1000,
+            maxHeight: 1777, // 9:16
+            minHeight: 563,  // ~2:1
+            gap: 1.5,
+        )
+    }
+
     public init(
         maxWidth: Double,
         maxHeight: Double,
