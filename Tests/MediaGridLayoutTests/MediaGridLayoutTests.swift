@@ -3,9 +3,11 @@ import MediaGridLayout
 
 private let layout = MediaLayout()
 
-private struct CGSize: Sized, Equatable {
+private struct CGSize: HasAspectRatio, Equatable {
     var width: Double
     var height: Double
+
+    var aspectRatio: Double { width / height }
 }
 
 @Test func returnsNilWhenZeroOrOneMedia() {

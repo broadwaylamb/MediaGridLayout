@@ -5,9 +5,9 @@
 //  Created by Grishka on 25.03.2023.
 //
 
-public protocol Sized {
-    var width: Double { get }
-    var height: Double { get }
+public protocol HasAspectRatio {
+    /// Width divided by height
+    var aspectRatio: Double { get }
 }
 
 public struct MediaLayoutResult<Element> {
@@ -96,7 +96,7 @@ public struct MediaLayout {
     @inlinable
     public func generate<C : Collection>(
         _ elements: C
-    ) -> MediaLayoutResult<C.Element>? where C.Element: Sized {
+    ) -> MediaLayoutResult<C.Element>? where C.Element: HasAspectRatio {
         if elements.count < 2 {
             return nil
         }
@@ -104,8 +104,8 @@ public struct MediaLayout {
         var ratios: [Double] = []
         var allAreWide = true
         var allAreSquare = true
-        for size in elements {
-            let ratio: Double = max(0.45, Double(size.width / size.height))
+        for element in elements {
+            let ratio: Double = max(0.45, element.aspectRatio)
             if ratio <= 1.2 {
                 allAreWide = false
                 if ratio < 0.8 {
