@@ -69,6 +69,7 @@ public struct MediaLayout {
     public var gap: Double
     public var maxRatio: Double
 
+    @inlinable
     public init() {
         self.init(
             maxWidth: 1000,
@@ -78,6 +79,7 @@ public struct MediaLayout {
         )
     }
 
+    @inlinable
     public init(
         maxWidth: Double,
         maxHeight: Double,
@@ -91,6 +93,7 @@ public struct MediaLayout {
         self.maxRatio = maxWidth / maxHeight
     }
 
+    @inlinable
     public func generate<C : Collection>(
         _ elements: C
     ) -> MediaLayoutResult<C.Element>? where C.Element: Sized {
@@ -401,7 +404,8 @@ public struct MediaLayout {
         }
     }
 
-    private func calculateMultiThumbsHeight<Ratios: Collection>(
+    @inlinable
+    internal func calculateMultiThumbsHeight<Ratios: Collection>(
         ratios: Ratios,
         width: Double,
         margin: Double,
