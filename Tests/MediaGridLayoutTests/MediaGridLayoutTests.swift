@@ -3,11 +3,15 @@ import MediaGridLayout
 
 private let layout = MediaLayout()
 
-private struct CGSize: HasAspectRatio, Equatable {
+private struct CGSize: HasAspectRatio, Equatable, CustomStringConvertible {
     var width: Double
     var height: Double
 
     var aspectRatio: Double { width / height }
+
+    var description: String {
+        "\(width)×\(height)"
+    }
 }
 
 @Test func returnsNilWhenZeroOrOneMedia() {
@@ -30,6 +34,32 @@ private struct CGSize: HasAspectRatio, Equatable {
                 .init(element: CGSize(width: 100, height: 100), colSpan: 2, rowSpan: 1, startCol: 0, startRow: 0),
                 .init(element: CGSize(width: 200, height: 200), colSpan: 1, rowSpan: 1, startCol: 0, startRow: 1),
                 .init(element: CGSize(width: 300, height: 300), colSpan: 1, rowSpan: 1, startCol: 1, startRow: 1),
+            ],
+        )
+    )
+}
+
+@Test func oneAboveTwoSmallerOnes() {
+    let layout = MediaLayout(
+        maxWidth: 320,
+        maxHeight: 569,
+        minHeight: 160,
+        gap: 1,
+    )
+    #expect(
+        layout.generate([
+            CGSize(width: 60, height: 20),
+            CGSize(width: 30, height: 20),
+            CGSize(width: 20, height: 20),
+        ]) == MediaLayoutResult(
+            width: 320,
+            height: 214,
+            columnSizes: [160, 160],
+            rowSizes: [107, 106],
+            tiles: [
+                .init(element: CGSize(width: 60, height: 20), colSpan: 2, rowSpan: 1, startCol: 0, startRow: 0),
+                .init(element: CGSize(width: 30, height: 20), colSpan: 1, rowSpan: 1, startCol: 0, startRow: 1),
+                .init(element: CGSize(width: 20, height: 20), colSpan: 1, rowSpan: 1, startCol: 1, startRow: 1),
             ],
         )
     )
