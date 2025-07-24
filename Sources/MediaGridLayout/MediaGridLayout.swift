@@ -59,10 +59,12 @@ public struct MediaLayoutResult<Element> {
 
 extension MediaLayoutResult.Tile: Equatable where Element: Equatable {}
 extension MediaLayoutResult.Tile: Hashable where Element: Hashable {}
+extension MediaLayoutResult.Tile: Sendable where Element: Sendable {}
 extension MediaLayoutResult: Equatable where Element: Equatable {}
 extension MediaLayoutResult: Hashable where Element: Hashable {}
+extension MediaLayoutResult: Sendable where Element: Sendable {}
 
-public struct MediaLayout {
+public struct MediaLayout: Sendable {
     public var maxWidth: Double
     public var maxHeight: Double
     public var minHeight: Double
